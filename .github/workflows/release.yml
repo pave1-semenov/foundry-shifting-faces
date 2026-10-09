@@ -4,10 +4,16 @@ on:
     tags: ['v*']
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish (for example v0.0.1)
+        required: true
+        type: string
 permissions:
   contents: write
 concurrency:
-  group: release-${{ github.event.release.tag_name || github.ref_name }}
+  group: release-${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
   cancel-in-progress: false
 jobs:
   release:
@@ -15,14 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name || github.ref_name }}
+          ref: ${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
       - run: npm test
       - name: Prepare release manifest
         env:
-          RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+          RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
         run: |
           node --input-type=module <<'JS'
           import fs from 'node:fs';
@@ -32,6 +39,7 @@ jobs:
           const manifest = JSON.parse(fs.readFileSync('module.json', 'utf8'));
           const url = `https://github.com/${process.env.GITHUB_REPOSITORY}`;
           manifest.version = version;
+          manifest.compatibility.verified ??= '14';
           manifest.url = url;
           manifest.manifest = `${url}/releases/latest/download/module.json`;
           manifest.download = `${url}/releases/download/${tag}/module.zip`;
@@ -40,12 +48,31 @@ jobs:
       - name: Create module archive
         run: zip --recurse-paths module.zip module.json README.md LICENSE src styles templates
       - name: Publish release files
+        id: github_release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+          RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
         run: |
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" module.json module.zip --clobber
           else
             gh release create "$RELEASE_TAG" module.json module.zip --title "Shifting Faces ${RELEASE_TAG#v}" --generate-notes --verify-tag
           fi
+          echo "prerelease=$(gh release view "$RELEASE_TAG" --json isPrerelease --jq '.isPrerelease')" >> "$GITHUB_OUTPUT"
+      - name: Check Foundry publishing configuration
+        id: foundry_config
+        env:
+          FOUNDRYVTT_RELEASE_TOKEN: ${{ secrets.FOUNDRYVTT_RELEASE_TOKEN }}
+        run: |
+          if [ -z "$FOUNDRYVTT_RELEASE_TOKEN" ]; then
+            echo "::warning::Foundry publishing skipped. Add the FOUNDRYVTT_RELEASE_TOKEN repository secret to enable it."
+          else
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish package to Foundry
+        if: steps.foundry_config.outputs.enabled == 'true' && steps.github_release.outputs.prerelease == 'false'
+        uses: djlechuck/foundryvtt-publish-package-action@v1
+        with:
+          token: ${{ secrets.FOUNDRYVTT_RELEASE_TOKEN }}
+          manifest: https://github.com/${{ github.repository }}/releases/download/${{ inputs.tag || github.event.release.tag_name || github.ref_name }}/module.json
+          notes: https://github.com/${{ github.repository }}/releases/tag/${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
