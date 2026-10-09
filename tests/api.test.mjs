@@ -12,10 +12,11 @@ test("pair IDs survive ordering, portrait changes, and persisted token-path edit
   const original = configFor(actor).pairs;
   stored.tokens.reverse();
   assert.equal(configFor(actor).pairs.find(pair => pair.token === "a001.webp").id, original[0].id);
-  stored.pairs = [{ id: original[0].id, token: "renamed001.webp" }];
+  stored.pairs = [{ id: original[0].id, token: "renamed001.webp", name: "Warrior-swordsman" }];
   stored.tokens = ["renamed001.webp"];
   stored.mappings = [{ token: "renamed001.webp", portrait: "custom.webp" }];
   assert.equal(configFor(actor).pairs[0].id, original[0].id);
+  assert.equal(configFor(actor).pairs[0].name, "Warrior-swordsman");
   assert.equal(pairIdForPath("grey%20wolf001.webp"), pairIdForPath("grey wolf001.webp"));
 });
 

@@ -9,7 +9,8 @@ Pair token images with actor portraits and switch between them from the token HU
 - Discover token and portrait images using wildcard paths.
 - Match images automatically by their trailing numeric index.
 - Assign a specific portrait or the default actor portrait to any token image.
-- Browse token images and their paired portraits in a searchable gallery.
+- Assign a token name to each pairing for unlinked tokens.
+- Browse token images, paired portraits, and resulting token names in a searchable gallery.
 - Switch images manually or randomly from the token HUD.
 - Update portraits for both linked and unlinked tokens.
 
@@ -27,7 +28,8 @@ The token HUD and switching macros are available to token owners regardless of t
 4. Enter the **Token images** and **Portrait images** wildcard paths.
 5. Click **Discover images**.
 6. Choose a portrait selection mode for each token image.
-7. Click **Save and apply**.
+7. Optionally enter a **Token name (unlinked only)** for each pairing, such as `Warrior-swordsman` or `Warrior-archer`.
+8. Click **Save and apply**.
 
 Paths use Foundry's **User Data** storage. For example:
 
@@ -56,9 +58,9 @@ Click a token or portrait preview to open it at full size.
 
 Open the token HUD and click the **portrait-in-a-circle** button. It appears when you own the token, pairings are enabled, and at least two images are available.
 
-The gallery shows available token images with their paired portraits and marks the current image.
+The gallery shows available token images with their paired portraits and the token name each choice will use. It marks the current image. Unnamed pairs show the token's original name; linked tokens show their current name.
 
-- Filter images by filename using the search field.
+- Filter images by filename or token name using the search field.
 - Click **Use this image** to switch and close the gallery.
 - Click **Random image** to select a different image and close the gallery.
 - Right-click the HUD button for a quick random switch.
@@ -67,11 +69,16 @@ The gallery shows available token images with their paired portraits and marks t
 
 The gallery includes Foundry's token wildcard images and token paths saved in the actor's pairing configuration. Image and video artwork are supported.
 
-## Linked and unlinked portraits
+## Linked and unlinked tokens
 
 **Unlinked tokens** have individual actor portraits. Changing a token image updates only that token's portrait.
 
+Each saved pair can also specify a **Token name (unlinked only)**, such as `Warrior-swordsman` or `Warrior-archer`. Selecting that image applies the name to an unlinked token. Selecting an unnamed pair restores its original name. Disabling pairings also restores names applied by the module, while preserving later manual name edits.
+
+Names applied before original-name backups were introduced fall back to the prototype token name, or the actor name when no prototype name is set.
+
 **Linked tokens** share one actor portrait. Changing any linked token's image updates that shared portrait for all linked tokens. The last changed token determines the portrait.
+Pair names do not rename linked tokens.
 
 Saving applies pairings to existing tokens. For linked tokens, a controlled token takes priority; otherwise the current shared portrait is retained when it still matches an available token.
 
@@ -79,7 +86,8 @@ Saving applies pairings to existing tokens. For linked tokens, a controlled toke
 
 Uncheck **Enable pairings** and click **Save and apply**. This removes the HUD button, closes the gallery, and stops automatic portrait changes.
 
-Portraits previously applied by the module are restored to their originals. Later manual portrait edits are preserved. Disable pairings and save before uninstalling if you want those original portraits restored.
+Portraits and token names previously applied by the module are restored to their originals. Later manual edits are preserved. Disable pairings and save before uninstalling if you want those original portraits and names restored.
+
 ## Use pairings in macros or item actions
 
 Each pairing card displays a **Pair ID** with a copy button. Save the configuration before using a new ID. IDs stay the same when a pairing's portrait, mode, or token path is edited.
@@ -114,6 +122,6 @@ const api = game.modules.get("shifting-faces").api;
 console.table(await api.getPairs("Actor.ACTOR_ID"));
 ```
 
-`getPairs(target)` returns each pairing's `id`, `token` image path, resolved `portrait`, and `mode`. Both methods accept Actor/Token UUIDs, Actor documents, TokenDocuments, or canvas Tokens.
+`getPairs(target)` returns each pairing's `id`, `token` image path, optional `name`, resolved `portrait`, and `mode`. Both methods accept Actor/Token UUIDs, Actor documents, TokenDocuments, or canvas Tokens.
 
-`switchPair(target, pairId)` updates the token image and runs normal portrait synchronization. It requires enabled pairings and token ownership, and rejects unknown IDs or ambiguous actor targets. Linked tokens retain the shared-portrait behavior described above.
+`switchPair(target, pairId)` updates the token image and synchronizes its portrait and, for unlinked tokens, its name. It requires enabled pairings and token ownership, and rejects unknown IDs or ambiguous actor targets. Linked tokens retain the shared-portrait behavior described above.

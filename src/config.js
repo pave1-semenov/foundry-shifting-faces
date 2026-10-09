@@ -30,7 +30,7 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
     this.tokens = this.draft.tokens ?? [];
     this.rows = this.draft.pairs.map(pair => {
       const mapping = this.draft.mappings.find(row => row.token === pair.token);
-      return { id: pair.id, token: pair.token, portrait: mapping?.portrait ?? "", mode: mapping ? mapping.portrait ? "explicit" : "default" : "auto" };
+      return { id: pair.id, token: pair.token, name: pair.name ?? "", portrait: mapping?.portrait ?? "", mode: mapping ? mapping.portrait ? "explicit" : "default" : "auto" };
     });
   }
 
@@ -48,7 +48,7 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
       portraitChoices: this.draft.portraits,
       rows: this.rows.map((row, index) => ({
         ...row, index, isSpecific: row.mode === "explicit",
-        name: row.token ? normalize(row.token).split("/").pop() : "New pairing",
+        displayName: row.token ? normalize(row.token).split("/").pop() : "New pairing",
         preview: resolvePortrait({ ...this.draft, enabled: true, mappings: row.mode === "auto" ? [] : [{ token: row.token, portrait: row.mode === "default" ? "" : row.portrait }] }, row.token, defaultPortraitForActor(this.actor)),
         modes: { auto: "Automatic index match", explicit: "Specific portrait", default: "Default actor portrait" }
       }))
@@ -79,6 +79,7 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
     this.rows = [...form.querySelectorAll("[data-pairing-row]")].map(row => ({
       id: row.dataset.pairId,
       token: row.querySelector('[data-field="token"]').value.trim(),
+      name: row.querySelector('[data-field="name"]').value.trim(),
       portrait: row.querySelector('[data-field="portrait"]').value.trim(),
       mode: row.querySelector('[data-field="mode"]').value
     }));
@@ -95,7 +96,7 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
       this.tokens = tokens;
       this.draft.portraits = portraits;
       const existing = new Set(this.rows.map(row => row.token));
-      for (const token of tokens) if (!existing.has(token)) this.rows.push({ id: pairIdForPath(token), token, portrait: "", mode: "auto" });
+      for (const token of tokens) if (!existing.has(token)) this.rows.push({ id: pairIdForPath(token), token, name: "", portrait: "", mode: "auto" });
       await this.render(true);
       ui.notifications.info(`Found ${tokens.length} token images and ${portraits.length} portraits. Save to keep the pairings.`);
     } catch (error) {
@@ -135,7 +136,7 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
   static async add() {
     if (!canConfigureActor(this.actor)) return;
     this.capture();
-    this.rows.push({ id: "pair-" + crypto.randomUUID(), token: "", portrait: "", mode: "explicit" });
+    this.rows.push({ id: "pair-" + crypto.randomUUID(), token: "", name: "", portrait: "", mode: "explicit" });
     await this.render(true);
   }
 
@@ -160,7 +161,7 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
       if (key.includes("*")) return ui.notifications.warn("Pairing rows need concrete token paths. Use Discover for wildcard patterns.");
       if (row.mode !== "auto") mappings.push({ token: key, portrait: row.mode === "default" ? "" : row.portrait });
     }
-    this.draft.pairs = this.rows.filter(row => row.token).map(row => ({ id: row.id ?? pairIdForPath(row.token), token: row.token }));
+    this.draft.pairs = this.rows.filter(row => row.token).map(row => ({ id: row.id ?? pairIdForPath(row.token), token: row.token, name: row.name ?? "" }));
     this.draft.mappings = mappings;
     this.draft.tokens = this.rows.filter(row => row.token).map(row => row.token);
     try {

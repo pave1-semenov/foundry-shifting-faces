@@ -39,7 +39,8 @@ export function configFor(actor) {
   const paths = [...new Set([...config.tokens, ...config.mappings.map(row => row.token)])];
   config.pairs = paths.map(token => ({
     id: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.id ?? pairIdForPath(token),
-    token
+    token,
+    name: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.name ?? ""
   }));
   return config;
 }

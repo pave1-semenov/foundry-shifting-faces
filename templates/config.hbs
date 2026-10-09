@@ -30,12 +30,13 @@
       <header class="pairings-heading"><h3>Image pairings</h3><span class="pairing-count">{{rows.length}} pairings</span></header>
       <p class="hint">Automatic pairs use the trailing index: warrior001 → warrior-portrait001. Missing or duplicate indices use the actor's default portrait.</p>
       <p class="hint">Linked tokens share one actor portrait: the last token image changed updates that shared portrait. Unlinked tokens keep individual portraits.</p>
+      <p class="hint">A pair's token name applies only to unlinked tokens. Leave it blank to use the token's original name.</p>
       <datalist id="{{id}}-portraits">{{#each portraitChoices}}<option value="{{this}}"></option>{{/each}}</datalist>
       <div class="pairings">
         {{#each rows}}
         <article class="pairing-row" data-pairing-row data-index="{{index}}" data-pair-id="{{id}}">
           <header class="pairing-header">
-            <span class="pairing-title" title="{{token}}">{{name}}</span>
+            <span class="pairing-title" title="{{token}}">{{displayName}}</span>
             <button class="remove-pairing" type="button" data-action="remove" title="Remove pairing" aria-label="Remove pairing"><i class="fas fa-trash"></i></button>
           </header>
           <div class="pairing-id">
@@ -64,6 +65,10 @@
                 <input type="text" id="{{../id}}-token-{{index}}" data-field="token" value="{{token}}" title="{{token}}">
                 <button type="button" data-action="pick" title="Browse token image" aria-label="Browse token image"><i class="fas fa-folder-open"></i></button>
               </div>
+            </div>
+            <div class="field-group">
+              <label for="{{../id}}-name-{{index}}">Token name (unlinked only)</label>
+              <input type="text" id="{{../id}}-name-{{index}}" data-field="name" value="{{name}}" placeholder="Use original token name">
             </div>
             <div class="field-group specific-portrait" {{#unless isSpecific}}hidden{{/unless}}>
               <label for="{{../id}}-portrait-{{index}}">Specific portrait</label>

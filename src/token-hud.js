@@ -55,15 +55,22 @@ export class TokenImageGallery extends HandlebarsApplicationMixin(ApplicationV2)
   }
 
   async _prepareContext() {
-    this.images = configFor(sourceActor(this.token)).enabled ? await tokenImages(this.token) : [];
     const actor = sourceActor(this.token);
+    const config = configFor(actor);
+    this.images = config.enabled ? await tokenImages(this.token) : [];
     const current = this.token._source?.texture?.src ?? this.token.texture?.src;
+    const previousName = this.token.getFlag?.(ID, "tokenName");
+    const originalName = previousName && this.token.name === previousName.applied ? previousName.original
+      : config.pairs.some(pair => pair.name?.trim() && pair.name.trim() === this.token.name)
+        ? actor.prototypeToken?.name || actor.name || this.token.name : this.token.name;
     return {
       canConfigure: canConfigureActor(actor),
       tokenName: this.token.name, query: this.query,
       choices: this.images.map((src, index) => {
-        const portrait = resolvePortrait(configFor(actor), src, defaultPortraitForActor(actor));
-        return { index, src, name: normalize(src).split("/").pop(), portrait,
+        const portrait = resolvePortrait(config, src, defaultPortraitForActor(actor));
+        const tokenName = this.token.actorLink ? this.token.name
+          : config.pairs.find(pair => normalize(pair.token) === normalize(src))?.name?.trim() || originalName;
+        return { index, src, name: normalize(src).split("/").pop(), tokenName, portrait,
           video: isVideo(src), portraitVideo: isVideo(portrait),
           selected: normalize(src) === normalize(current) };
       })
@@ -83,7 +90,7 @@ export class TokenImageGallery extends HandlebarsApplicationMixin(ApplicationV2)
     const query = this.query.trim().toLocaleLowerCase();
     let visible = 0;
     this.element.querySelectorAll("[data-image-choice]").forEach(card => {
-      card.hidden = !card.dataset.name.toLocaleLowerCase().includes(query);
+      card.hidden = !`${card.dataset.name} ${card.dataset.tokenName ?? ""}`.toLocaleLowerCase().includes(query);
       if (!card.hidden) visible++;
     });
     const empty = this.element.querySelector(".gallery-no-results");
