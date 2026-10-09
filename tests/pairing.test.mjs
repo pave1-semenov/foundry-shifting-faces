@@ -78,7 +78,8 @@ test("portraits update separately for unlinked tokens and share the last selecti
   hooks.get("init")();
   function token(id, src, linked = false) {
     const own = portrait("original.jpg");
-    return { ...own, uuid: id, parent: { id: "scene" }, isOwner: true, actorId: actor.id, actorLink: linked,
+    return { ...own, name: "Warrior", uuid: id, parent: { id: "scene" }, isOwner: true, actorId: actor.id, actorLink: linked,
+      update: async function (data) { if (data.name) this.name = data.name; },
       texture: { src: "tokens/previous999.webp" }, _source: { texture: { src } }, actor: linked ? actor : portrait("original.jpg")
     };
   }
@@ -86,12 +87,20 @@ test("portraits update separately for unlinked tokens and share the last selecti
   const bear = token("bear", "tokens/bear002.webp");
   const linkedWolf = token("linked-wolf", "tokens/wolf001.webp", true);
   const linkedBear = token("linked-bear", "tokens/bear002.webp", true);
+  config.tokens = ["tokens/wolf001.webp", "tokens/bear002.webp"];
+  config.pairs = [
+    { id: "wolf", token: "tokens/wolf001.webp", name: "Warrior-swordsman" },
+    { id: "bear", token: "tokens/bear002.webp", name: "Warrior-archer" }
+  ];
   await Promise.all([syncToken(wolf), syncToken(bear)]);
+  assert.equal(wolf.name, "Warrior-swordsman");
+  assert.equal(bear.name, "Warrior-archer");
   assert.equal(wolf.actor.img, "portraits/wolf-portrait001.jpg");
   assert.equal(bear.actor.img, "portraits/bear-portrait002.webp");
   assert.equal(actor.img, "default.jpg");
 
   await Promise.all([syncToken(linkedWolf), syncToken(linkedBear)]);
+  assert.equal(linkedWolf.name, "Warrior", "linked token names are unchanged");
   assert.equal(actor.img, "portraits/bear-portrait002.webp");
   assert.equal(linkedWolf.actor.img, linkedBear.actor.img);
   assert.equal(actor.getFlag(ID, "portrait").original, "default.jpg");
@@ -136,6 +145,50 @@ test("portraits update separately for unlinked tokens and share the last selecti
   });
   assert.deepEqual(popout, { src: "portrait.jpg", window: { title: "Warrior — Portrait" } });
 });
+test("unnamed pairs restore original token names across switches and preserve manual edits", async () => {
+  const { syncToken } = await import("../src/module.js");
+  const names = { enabled: true, tokens: ["sword.webp", "bow.webp", "plain.webp"], pairs: [
+    { token: "sword.webp", name: "Warrior-swordsman" },
+    { token: "bow.webp", name: "Warrior-archer" }
+  ] };
+  const actor = { id: "names", name: "Warrior", img: "default.webp", getFlag: () => names };
+  globalThis.game = { actors: new Map([[actor.id, actor]]) };
+  const flags = { portrait: { original: "default.webp", applied: "default.webp" } };
+  const token = { uuid: "name-test", name: "Warrior 3", actorId: actor.id, actorLink: false,
+    actor: { img: "default.webp", update: async function (data) { this.img = data.img; } }, parent: {}, isOwner: true,
+    _source: { texture: { src: "sword.webp" } },
+    getFlag: (scope, key) => flags[key],
+    setFlag: async (scope, key, value) => { flags[key] = value; },
+    unsetFlag: async (scope, key) => { delete flags[key]; },
+    update: async data => { if ("name" in data) token.name = data.name; }
+  };
+  await syncToken(token);
+  assert.equal(token.name, "Warrior-swordsman");
+  token._source.texture.src = "bow.webp";
+  await syncToken(token);
+  assert.equal(token.name, "Warrior-archer");
+  token._source.texture.src = "plain.webp";
+  await syncToken(token);
+  assert.equal(token.name, "Warrior 3");
+  assert.equal(flags.tokenName, undefined);
+  token._source.texture.src = "sword.webp";
+  await syncToken(token);
+  token.name = "Captain";
+  token._source.texture.src = "plain.webp";
+  await syncToken(token);
+  assert.equal(token.name, "Captain");
+  // Recover a token named by the earlier implementation, which stored no backup.
+  token.name = "Warrior-archer";
+  await syncToken(token);
+  assert.equal(token.name, "Warrior");
+  token._source.texture.src = "sword.webp";
+  await syncToken(token);
+  names.enabled = false;
+  await syncToken(token, { restore: true });
+  assert.equal(token.name, "Warrior");
+  assert.equal(flags.tokenName, undefined);
+});
+
 test("Save and apply closes only after successful save and application", async () => {
   const { ShiftingFacesConfig } = await import("../src/config.js");
   const events = [];

@@ -18,7 +18,7 @@ export async function getPairs(target) {
   const config = configFor(actor);
   return config.pairs.map(pair => {
     const mapping = config.mappings.find(row => row.token === pair.token);
-    return { id: pair.id, token: pair.token,
+    return { id: pair.id, token: pair.token, name: pair.name,
       portrait: resolvePortrait({ ...config, enabled: true }, pair.token, defaultPortraitForActor(actor)),
       mode: mapping ? mapping.portrait ? "explicit" : "default" : "auto" };
   });

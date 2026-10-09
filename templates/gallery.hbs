@@ -4,14 +4,15 @@
     {{#if canConfigure}}<button type="button" data-action="configure" title="Configure actor portrait pairings"><i class="fas fa-sliders"></i> Pairings</button>{{/if}}
   </header>
   <div class="gallery-tools">
-    <input class="gallery-search" type="search" value="{{query}}" placeholder="Filter images by filename" aria-label="Filter token images">
+    <input class="gallery-search" type="search" value="{{query}}" placeholder="Filter by filename or token name" aria-label="Filter token images by filename or token name">
     <button type="button" data-action="random"><i class="fas fa-dice"></i> Random image</button>
   </div>
   <div class="config-scroll">
     <div class="token-image-choices">
       {{#each choices}}
-      <article class="token-image-choice {{#if selected}}selected{{/if}}" data-image-choice data-name="{{name}}">
+      <article class="token-image-choice {{#if selected}}selected{{/if}}" data-image-choice data-name="{{name}}" data-token-name="{{tokenName}}">
         <header><strong title="{{src}}">{{name}}</strong>{{#if selected}}<span class="current-image">Current</span>{{/if}}</header>
+        <p class="gallery-token-name">Token name: <span>{{tokenName}}</span></p>
         <div class="pairing-art">
           <figure>
             <button class="image-preview" type="button" data-action="preview" data-src="{{src}}" title="Preview token image">

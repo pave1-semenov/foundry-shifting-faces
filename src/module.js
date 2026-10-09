@@ -1,4 +1,4 @@
-import { ID, configFor, sourceActor, portraitForToken, migrateFlags, moduleFlag } from "./pairing.js";
+import { ID, configFor, sourceActor, portraitForToken, migrateFlags, moduleFlag, normalize } from "./pairing.js";
 import { ShiftingFacesConfig } from "./config.js";
 import { registerTokenHUD, openGallery } from "./token-hud.js";
 import { getPairs, switchPair } from "./api.js";
@@ -6,6 +6,29 @@ import { registerSettings, canConfigureActor } from "./settings.js";
 
 // Linked tokens serialize on their shared actor, unlinked tokens on their token.
 const pending = new Map();
+async function syncTokenName(token, actor, config, restore) {
+  const previous = token.getFlag(ID, "tokenName");
+  if (!config.enabled && !restore) return;
+  const path = token._source?.texture?.src ?? token.texture?.src;
+  const name = config.enabled && !token.actorLink
+    ? config.pairs.find(pair => normalize(pair.token) === normalize(path))?.name?.trim()
+    : "";
+  // Tokens renamed before name backups were introduced can recover the prototype name.
+  const legacyAssigned = !previous && config.pairs.some(pair => pair.name?.trim() && pair.name.trim() === token.name);
+  const original = previous && token.name === previous.applied ? previous.original
+    : legacyAssigned ? actor.prototypeToken?.name || actor.name || token.name : token.name;
+  if (name) {
+    if (token.name === name && previous) return;
+    await token.setFlag(ID, "tokenName", { original, applied: name });
+    if (token.name !== name) await token.update({ name }, { [ID]: true });
+  } else {
+    if ((previous && token.name === previous.applied) || (legacyAssigned && !token.actorLink)) {
+      if (token.name !== original) await token.update({ name: original }, { [ID]: true });
+    }
+    if (previous) await token.unsetFlag(ID, "tokenName");
+  }
+}
+
 export function syncToken(token, { restore = false } = {}) {
   const source = sourceActor(token);
   const key = token.actorLink ? source?.uuid ?? "Actor." + token.actorId : token.uuid;
@@ -17,7 +40,9 @@ export function syncToken(token, { restore = false } = {}) {
     if (!target?.isOwner && token.actorLink) return;
     await migrateFlags(flagOwner);
     const previous = moduleFlag(flagOwner, "portrait");
-    if (configFor(actor).enabled) {
+    const config = configFor(actor);
+    await syncTokenName(token, actor, config, restore);
+    if (config.enabled) {
       const portrait = portraitForToken(token);
       if (!portrait || (target.img === portrait && previous)) return;
       const original = previous && target.img === previous.applied ? previous.original : target.img;
