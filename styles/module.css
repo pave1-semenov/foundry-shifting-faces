@@ -1,0 +1,69 @@
+.shifting-faces-config { max-height: calc(100vh - 32px); }
+.shifting-faces-config .window-content { display: flex; flex-direction: column; gap: 0; min-height: 0; padding: 0; overflow: hidden; container-type: inline-size; }
+.shifting-faces-config .config-body { display: flex; flex: 1 1 0; flex-direction: column; min-height: 0; overflow: hidden; }
+.shifting-faces-config .config-heading { display: flex; align-items: center; justify-content: space-between; flex: 0 0 auto; gap: 20px; padding: 18px 20px; border-bottom: 1px solid var(--color-border-light-primary, #7775); }
+.shifting-faces-config .config-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.shifting-faces-config .config-heading h2 { margin: 5px 0 0; padding: 0; border: 0; font-size: 28px; }
+.shifting-faces-config .enable-pairings { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; font-weight: 600; white-space: nowrap; }
+.shifting-faces-config .config-scroll { display: block; flex: 1 1 0; min-height: 0; overflow: auto; scrollbar-gutter: stable; padding: 20px; }
+.shifting-faces-config .config-panel { margin: 0 0 24px; }
+.shifting-faces-config h3 { margin: 0 0 14px; padding: 0; border: 0; font-size: 20px; font-weight: 700; line-height: 1.3; }
+.shifting-faces-config .artwork-paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 16px; margin-bottom: 10px; }
+.shifting-faces-config .field-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; margin: 0; }
+.shifting-faces-config .field-group > label { font-size: 12px; font-weight: 600; line-height: 1.4; }
+.shifting-faces-config .field-group input,
+.shifting-faces-config .field-group select { width: 100%; min-width: 0; height: 32px; margin: 0; }
+.shifting-faces-config .hint { margin: 0; font-size: 12px; line-height: 1.5; color: var(--color-text-secondary, inherit); }
+.shifting-faces-config .path-field { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; min-width: 0; }
+.shifting-faces-config .field-group .path-field > input { flex: 1 1 0; width: 100%; min-width: 0; }
+.shifting-faces-config .field-group .path-field > button { flex: 0 0 32px; width: 32px; min-width: 32px; height: 32px; padding: 0; margin: 0; }
+.shifting-faces-config .section-actions { display: flex; justify-content: center; margin-top: 16px; }
+.shifting-faces-config .section-actions > button,
+.shifting-faces-config .config-footer > button { flex: 0 0 auto; width: auto; min-width: 180px; min-height: 40px; margin: 0; padding: 8px 20px; font-size: 14px; }
+.shifting-faces-config .pairings-section { display: flex; flex-direction: column; gap: 12px; }
+.shifting-faces-config .pairings-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.shifting-faces-config .pairings-heading h3 { margin: 0; }
+.shifting-faces-config .pairing-count { font-size: 12px; opacity: .7; }
+.shifting-faces-config .pairings { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.shifting-faces-config .pairing-row { display: flex; flex-direction: column; gap: 10px; height: 460px; min-width: 0; margin: 0; padding: 14px; border: 1px solid var(--color-border-light-primary, #7775); border-radius: 8px; background: color-mix(in srgb, var(--color-bg-option, #222) 35%, transparent); }
+.shifting-faces-config .pairing-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.shifting-faces-config .pairing-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; font-weight: 700; }
+.shifting-faces-config .remove-pairing { flex: 0 0 28px; width: 28px; height: 28px; padding: 0; margin: 0; }
+.shifting-faces-config .pairing-art { display: flex; justify-content: center; align-items: center; gap: 12px; }
+.shifting-faces-config .pairing-art > i { opacity: .5; font-size: 14px; }
+.shifting-faces-config figure { flex: 0 1 128px; min-width: 0; margin: 0; }
+.shifting-faces-config .pairing-art .image-preview { display: block; width: 100%; height: 144px; min-height: 0; margin: 0; padding: 4px; overflow: hidden; border: 1px solid var(--color-border-light-primary, #7775); border-radius: 6px; background: color-mix(in srgb, var(--color-bg-option, #111) 60%, transparent); cursor: zoom-in; }
+.shifting-faces-config .image-preview:hover,
+.shifting-faces-config .image-preview:focus-visible { border-color: var(--color-warm-2, #d8a85e); }
+.shifting-faces-config .pairing-art img { display: block; width: 100%; height: 100%; object-fit: contain; border: 0; }
+.shifting-faces-config figcaption { margin-top: 4px; font-size: 12px; text-align: center; opacity: .75; }
+.shifting-faces-config .pairing-fields { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.shifting-faces-config .specific-portrait[hidden] { display: none; }
+.shifting-faces-config .pairings-empty { grid-column: 1 / -1; padding: 32px 16px; border: 1px dashed var(--color-border-light-primary, #7775); border-radius: 8px; text-align: center; }
+.shifting-faces-config .pairings-empty > i { font-size: 28px; opacity: .5; }
+.shifting-faces-config .pairings-empty p { margin: 10px 0 4px; font-weight: 600; }
+.shifting-faces-config .pairings-empty span { font-size: 12px; opacity: .7; }
+.shifting-faces-config .config-footer { display: flex; flex: 0 0 auto; justify-content: center; margin: 0; padding: 12px 20px; border-top: 1px solid var(--color-border-light-primary, #7775); }
+@container (max-width: 560px) {
+  .shifting-faces-config .config-heading { flex-wrap: wrap; gap: 12px; }
+  .shifting-faces-config .enable-pairings { white-space: normal; }
+}
+.shifting-faces-gallery .gallery-tools { display: flex; flex: 0 0 auto; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--color-border-light-primary, #7775); }
+.shifting-faces-gallery .gallery-search { flex: 1 1 0; min-width: 0; }
+.shifting-faces-gallery .gallery-tools button { flex: 0 0 auto; width: auto; }
+.shifting-faces-gallery .token-image-choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.shifting-faces-gallery .token-image-choice { display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 14px; border: 1px solid var(--color-border-light-primary, #7775); border-radius: 8px; }
+.shifting-faces-gallery .token-image-choice.selected { border-color: var(--color-warm-2, #d8a85e); background: color-mix(in srgb, var(--color-warm-2, #d8a85e) 8%, transparent); }
+.shifting-faces-gallery .token-image-choice > header { display: flex; align-items: center; gap: 8px; }
+.shifting-faces-gallery .token-image-choice strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.shifting-faces-gallery .current-image { font-size: 11px; color: var(--color-warm-2, #d8a85e); }
+.shifting-faces-gallery .select-token-image { width: 100%; min-height: 36px; margin: 0; }
+.shifting-faces-gallery .pairing-art video { display: block; width: 100%; height: 100%; object-fit: contain; }
+.shifting-faces-gallery .gallery-no-results { margin: 24px 0; text-align: center; opacity: .7; }
+.shifting-faces-gallery [data-image-choice][hidden] { display: none; }
+#token-hud .shifting-faces-switch { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; }
+.shifting-faces-gallery .config-heading > div { flex: 1 1 auto; min-width: 0; }
+.shifting-faces-gallery .config-heading > button { flex: 0 0 auto; width: auto; min-width: 110px; }
+.shifting-faces-config .pairing-id { display: flex; gap: 6px; align-items: center; min-width: 0; }
+.shifting-faces-config .pairing-id input { flex: 1 1 0; min-width: 0; height: 28px; font-family: monospace; font-size: 11px; }
+.shifting-faces-config .pairing-id button { flex: 0 0 28px; width: 28px; height: 28px; padding: 0; margin: 0; }

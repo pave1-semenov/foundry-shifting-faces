@@ -1,0 +1,34 @@
+<section class="config-body">
+  <header class="config-heading">
+    <div><span class="config-eyebrow">Choose token image</span><h2>{{tokenName}}</h2></div>
+    {{#if canConfigure}}<button type="button" data-action="configure" title="Configure actor portrait pairings"><i class="fas fa-sliders"></i> Pairings</button>{{/if}}
+  </header>
+  <div class="gallery-tools">
+    <input class="gallery-search" type="search" value="{{query}}" placeholder="Filter images by filename" aria-label="Filter token images">
+    <button type="button" data-action="random"><i class="fas fa-dice"></i> Random image</button>
+  </div>
+  <div class="config-scroll">
+    <div class="token-image-choices">
+      {{#each choices}}
+      <article class="token-image-choice {{#if selected}}selected{{/if}}" data-image-choice data-name="{{name}}">
+        <header><strong title="{{src}}">{{name}}</strong>{{#if selected}}<span class="current-image">Current</span>{{/if}}</header>
+        <div class="pairing-art">
+          <figure>
+            <button class="image-preview" type="button" data-action="preview" data-src="{{src}}" title="Preview token image">
+              {{#if video}}<video src="{{src}}" muted loop autoplay playsinline preload="metadata"></video>{{else}}<img src="{{src}}" alt="Token image" loading="lazy">{{/if}}
+            </button><figcaption>Token</figcaption>
+          </figure>
+          <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          <figure>
+            <button class="image-preview" type="button" data-action="preview" data-src="{{portrait}}" title="Preview paired portrait">
+              {{#if portraitVideo}}<video src="{{portrait}}" muted loop autoplay playsinline preload="metadata"></video>{{else}}<img src="{{portrait}}" alt="Paired portrait" loading="lazy">{{/if}}
+            </button><figcaption>Portrait</figcaption>
+          </figure>
+        </div>
+        <button class="select-token-image" type="button" data-action="select" data-index="{{index}}" {{#if selected}}disabled{{/if}}><i class="fas fa-check"></i> {{#if selected}}Selected{{else}}Use this image{{/if}}</button>
+      </article>
+      {{/each}}
+    </div>
+    <p class="gallery-no-results" hidden>No matching images.</p>
+  </div>
+</section>

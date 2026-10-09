@@ -1,0 +1,51 @@
+name: Publish Foundry Module
+on:
+  push:
+    tags: ['v*']
+  release:
+    types: [published]
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.event.release.tag_name || github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref_name }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm test
+      - name: Prepare release manifest
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const tag = process.env.RELEASE_TAG;
+          const version = tag.replace(/^v/, '');
+          if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('Expected a vMAJOR.MINOR.PATCH tag');
+          const manifest = JSON.parse(fs.readFileSync('module.json', 'utf8'));
+          const url = `https://github.com/${process.env.GITHUB_REPOSITORY}`;
+          manifest.version = version;
+          manifest.url = url;
+          manifest.manifest = `${url}/releases/latest/download/module.json`;
+          manifest.download = `${url}/releases/download/${tag}/module.zip`;
+          fs.writeFileSync('module.json', JSON.stringify(manifest, null, 2) + '\n');
+          JS
+      - name: Create module archive
+        run: zip --recurse-paths module.zip module.json README.md LICENSE src styles templates
+      - name: Publish release files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" module.json module.zip --clobber
+          else
+            gh release create "$RELEASE_TAG" module.json module.zip --title "Shifting Faces ${RELEASE_TAG#v}" --generate-notes --verify-tag
+          fi

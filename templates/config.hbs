@@ -1,0 +1,84 @@
+<section class="config-body">
+  <header class="config-heading">
+    <div><span class="config-eyebrow">Shifting Faces</span><h2>{{actorName}}</h2></div>
+    <label class="enable-pairings"><input type="checkbox" name="enabled" {{checked config.enabled}}> Enable pairings</label>
+  </header>
+  <div class="config-scroll">
+    <section class="config-panel">
+      <h3>Artwork paths</h3>
+      <div class="artwork-paths">
+        <div class="field-group">
+          <label for="{{id}}-token-pattern">Token images</label>
+          <div class="path-field">
+            <input type="text" id="{{id}}-token-pattern" name="tokenPattern" value="{{config.tokenPattern}}" placeholder="art/tokens/warrior*.webp">
+            <button type="button" data-action="pick" title="Browse token images" aria-label="Browse token images"><i class="fas fa-folder-open"></i></button>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="{{id}}-portrait-pattern">Portrait images</label>
+          <div class="path-field">
+            <input type="text" id="{{id}}-portrait-pattern" name="portraitPattern" value="{{config.portraitPattern}}" placeholder="art/portraits/warrior-portrait*.webp">
+            <button type="button" data-action="pick" title="Browse portrait images" aria-label="Browse portrait images"><i class="fas fa-folder-open"></i></button>
+          </div>
+        </div>
+      </div>
+      <p class="hint">Use * to discover images in User Data. Configure token randomization in Prototype Token.</p>
+      <div class="section-actions"><button type="button" data-action="discover"><i class="fas fa-search"></i> Discover images</button></div>
+    </section>
+
+    <section class="pairings-section">
+      <header class="pairings-heading"><h3>Image pairings</h3><span class="pairing-count">{{rows.length}} pairings</span></header>
+      <p class="hint">Automatic pairs use the trailing index: warrior001 → warrior-portrait001. Missing or duplicate indices use the actor's default portrait.</p>
+      <p class="hint">Linked tokens share one actor portrait: the last token image changed updates that shared portrait. Unlinked tokens keep individual portraits.</p>
+      <datalist id="{{id}}-portraits">{{#each portraitChoices}}<option value="{{this}}"></option>{{/each}}</datalist>
+      <div class="pairings">
+        {{#each rows}}
+        <article class="pairing-row" data-pairing-row data-index="{{index}}" data-pair-id="{{id}}">
+          <header class="pairing-header">
+            <span class="pairing-title" title="{{token}}">{{name}}</span>
+            <button class="remove-pairing" type="button" data-action="remove" title="Remove pairing" aria-label="Remove pairing"><i class="fas fa-trash"></i></button>
+          </header>
+          <div class="pairing-id">
+            <input type="text" value="{{id}}" readonly aria-label="Pair ID" title="Pair ID for macros — save this pairing before use">
+            <button type="button" data-action="copyPairId" title="Copy Pair ID" aria-label="Copy Pair ID"><i class="fas fa-copy"></i></button>
+          </div>
+          <div class="pairing-art">
+            <figure>
+              <button class="image-preview" type="button" data-action="preview" data-kind="Token" title="Preview token image"><img class="token-preview" src="{{#if token}}{{token}}{{else}}icons/svg/mystery-man.svg{{/if}}" alt="Token preview" loading="lazy"></button>
+              <figcaption>Token</figcaption>
+            </figure>
+            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            <figure>
+              <button class="image-preview" type="button" data-action="preview" data-kind="Portrait" title="Preview portrait image"><img class="portrait-preview" src="{{preview}}" alt="Portrait preview" loading="lazy"></button>
+              <figcaption>Portrait</figcaption>
+            </figure>
+          </div>
+          <div class="pairing-fields">
+            <div class="field-group">
+              <label for="{{../id}}-mode-{{index}}">Portrait selection</label>
+              <select id="{{../id}}-mode-{{index}}" data-field="mode">{{selectOptions modes selected=mode}}</select>
+            </div>
+            <div class="field-group">
+              <label for="{{../id}}-token-{{index}}">Token image</label>
+              <div class="path-field">
+                <input type="text" id="{{../id}}-token-{{index}}" data-field="token" value="{{token}}" title="{{token}}">
+                <button type="button" data-action="pick" title="Browse token image" aria-label="Browse token image"><i class="fas fa-folder-open"></i></button>
+              </div>
+            </div>
+            <div class="field-group specific-portrait" {{#unless isSpecific}}hidden{{/unless}}>
+              <label for="{{../id}}-portrait-{{index}}">Specific portrait</label>
+              <div class="path-field">
+                <input type="text" id="{{../id}}-portrait-{{index}}" data-field="portrait" value="{{portrait}}" list="{{../id}}-portraits" placeholder="Choose an portrait image">
+                <button type="button" data-action="pick" title="Browse portrait image" aria-label="Browse portrait image"><i class="fas fa-folder-open"></i></button>
+              </div>
+            </div>
+          </div>
+        </article>
+        {{else}}
+        <div class="pairings-empty"><i class="fas fa-images"></i><p>No pairings yet</p><span>Discover images or add a specific pairing.</span></div>
+        {{/each}}
+      </div>
+      <div class="section-actions"><button type="button" data-action="add"><i class="fas fa-plus"></i> Add pairing</button></div>
+    </section>
+  </div>
+</section>
