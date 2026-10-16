@@ -1,10 +1,11 @@
+import { scenescapeHeight } from "./height.js";
 import { ID, normalize } from "./pairing.js";
 
 /** Scenescape's size flag is physical height in feet, independent of grid units. */
 export async function syncScenescape(token, config) {
   if (!config.enabled || !game.modules?.get("multi-token-edit")?.active || !game.settings?.get(ID, "scenescapeIntegration")) return;
   const path = token._source?.texture?.src ?? token.texture?.src;
-  const height = config.pairs.find(pair => normalize(pair.token) === normalize(path))?.height;
+  const height = scenescapeHeight(config.pairs.find(pair => normalize(pair.token) === normalize(path))?.height);
   if (!Number.isFinite(height) || height <= 0) return;
   let previous = token.getFlag("multi-token-edit", "size");
   if (previous === height) return;

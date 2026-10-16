@@ -17,3 +17,14 @@ test("stored feet reopen with explicit units and survive repeated saves without 
   }
   assert.equal(heightForInput(null), "");
 });
+
+
+test("entered units persist and Scenescape alone receives rounded feet", async () => {
+  const { scenescapeHeight } = await import("../src/height.js");
+  for (const input of ["180 cm", "1.8 m", "180", "5.9055 feet", "1,8 m"]) {
+    assert.equal(heightForInput(input), input);
+    assert.equal(scenescapeHeight(input), 5.9);
+  }
+  assert.equal(scenescapeHeight(6.123456), 6.1);
+  assert.equal(scenescapeHeight(null), null);
+});

@@ -37,3 +37,14 @@ test("Scenescape classification preserves explicit checkbox values and infers ol
   ] }) });
   assert.deepEqual(config.pairs.map(pair => pair.scenescape), [true, false, true]);
 });
+
+
+test("Scenescape writes rounded feet while pairing height retains its original unit", async () => {
+  globalThis.game = { modules: new Map([["multi-token-edit", { active: true }]]), settings: { get: () => true } };
+  let written;
+  const token = { texture: { src: "a.webp" }, getFlag: () => 6, update: async data => { written = data; } };
+  const config = { enabled: true, pairs: [{ token: "a.webp", height: "1.8 m" }] };
+  await syncScenescape(token, config);
+  assert.equal(written["flags.multi-token-edit.size"], 5.9);
+  assert.equal(config.pairs[0].height, "1.8 m");
+});

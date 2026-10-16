@@ -128,7 +128,7 @@ console.table(await api.getPairs("Actor.ACTOR_ID"));
 
 The token HUD gallery opens in compact **Just tokens** mode. Use **Portrait** on a card to preview its portrait, or **Display pairings** to show token and portrait side by side.
 
-Enable **Scenescape integration** in the global Shifting Faces settings to enter a height on each pairing. Use feet (or ft), m, or cm; unitless input is centimeters. Heights are saved as feet and reopen with an explicit ft suffix. With Multi Token Edit active, selecting that pairing writes Scenescape’s physical size flag and resizes existing Scenescape tokens around their feet. Blank heights keep the existing size.
+Enable **Scenescape integration** in the global Shifting Faces settings to enter a height on each pairing. Use feet (or ft), m, or cm; unitless input is centimeters. The entered value and unit are preserved in pairings; Scenescape receives feet rounded to one decimal place. With Multi Token Edit active, selecting that pairing writes Scenescape’s physical size flag and resizes existing Scenescape tokens around their feet. Blank heights keep the existing size.
 
 Mark full-height artwork with **Scenescape token** in each pairing. Existing pairings with a positive Scenescape height start marked; you can uncheck them. The gallery defaults to **Only Scenescape** when the active scene has Scenescape markers and Multi Token Edit is active, and **Regular tokens** on other scenes. Choose **All tokens** to show all artwork. Search and Random image respect the filtered gallery.
 

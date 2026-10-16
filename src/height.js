@@ -10,7 +10,14 @@ export function heightInFeet(value) {
   return Number.isFinite(feet) && feet > 0 ? feet : NaN;
 }
 
-/** Stored values are already feet; keep their units explicit when editing. */
+/** Legacy numeric values are feet; new values retain the original text and unit. */
 export function heightForInput(feet) {
+  if (typeof feet === "string") return feet;
   return Number.isFinite(feet) && feet > 0 ? feet + " ft" : "";
+}
+
+/** Only the value sent to Scenescape is converted and rounded. */
+export function scenescapeHeight(value) {
+  const feet = typeof value === "number" ? value : heightInFeet(value);
+  return Number.isFinite(feet) && feet > 0 ? Math.round((feet + Number.EPSILON) * 10) / 10 : null;
 }
