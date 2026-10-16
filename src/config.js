@@ -185,7 +185,7 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
       if (key.includes("*")) return ui.notifications.warn("Pairing rows need concrete token paths. Use Discover for wildcard patterns.");
       if (row.mode !== "auto") mappings.push({ token: key, portrait: row.mode === "default" ? "" : row.portrait });
     }
-    this.draft.pairs = this.rows.filter(row => row.token).map(row => ({ id: row.id ?? pairIdForPath(row.token), token: row.token, name: row.name ?? "", scale: row.scale === "" || row.scale == null ? null : Number(row.scale), scenescape: !!row.scenescape, height: heightInFeet(row.height) }));
+    this.draft.pairs = this.rows.filter(row => row.token).map(row => ({ id: row.id ?? pairIdForPath(row.token), token: row.token, name: row.name ?? "", scale: row.scale === "" || row.scale == null ? null : Number(row.scale), scenescape: !!row.scenescape, height: row.height?.trim() || null }));
     this.draft.mappings = mappings;
     this.draft.tokens = this.rows.filter(row => row.token).map(row => row.token);
     try {

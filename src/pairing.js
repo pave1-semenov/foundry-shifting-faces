@@ -1,3 +1,4 @@
+import { heightInFeet } from "./height.js";
 export const ID = "shifting-faces";
 export const LEGACY_ID = "token-avatar-wildcard";
 
@@ -41,7 +42,7 @@ export function configFor(actor) {
     id: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.id ?? pairIdForPath(token),
     token,
     scenescape: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.scenescape
-      ?? (Number(config.pairs.find(pair => normalize(pair.token) === normalize(token))?.height) > 0),
+      ?? (heightInFeet(config.pairs.find(pair => normalize(pair.token) === normalize(token))?.height) > 0),
     scale: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.scale ?? null,
     height: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.height ?? null,
     name: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.name ?? ""
