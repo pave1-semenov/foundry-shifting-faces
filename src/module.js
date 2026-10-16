@@ -1,3 +1,5 @@
+import { syncTokenScale } from "./token-scale.js";
+import { syncScenescape } from "./scenescape.js";
 import { ID, configFor, sourceActor, portraitForToken, migrateFlags, moduleFlag, normalize } from "./pairing.js";
 import { ShiftingFacesConfig } from "./config.js";
 import { registerTokenHUD, openGallery } from "./token-hud.js";
@@ -41,7 +43,9 @@ export function syncToken(token, { restore = false } = {}) {
     await migrateFlags(flagOwner);
     const previous = moduleFlag(flagOwner, "portrait");
     const config = configFor(actor);
+    await syncScenescape(token, config);
     await syncTokenName(token, actor, config, restore);
+    await syncTokenScale(token, config, restore);
     if (config.enabled) {
       const portrait = portraitForToken(token);
       if (!portrait || (target.img === portrait && previous)) return;
@@ -125,7 +129,7 @@ Hooks.on("createToken", (token, options, userId) => {
   if (responsible(userId)) void syncToken(token);
 });
 Hooks.on("updateToken", (token, changes, options, userId) => {
-  if (responsible(userId) && (foundry.utils.hasProperty(changes, "texture.src") || "actorLink" in changes || "actorId" in changes)) void syncToken(token);
+  if (responsible(userId) && (foundry.utils.hasProperty(changes, "texture.src") || "actorLink" in changes || "actorId" in changes || (!options[ID] && foundry.utils.hasProperty(changes, "flags.multi-token-edit.size")))) void syncToken(token);
 });
 Hooks.on("updateActor", (actor, changes, options, userId) => {
   if (actor.isToken || options[ID] || !configFor(actor).enabled || !responsible(userId) || !("img" in changes)) return;

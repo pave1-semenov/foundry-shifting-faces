@@ -1,3 +1,4 @@
+import { heightInFeet, heightForInput } from "./height.js";
 import { ID, configFor, discover, resolvePortrait, normalize, defaultPortraitForActor, pairIdForPath } from "./pairing.js";
 import { canConfigureActor } from "./settings.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -25,12 +26,13 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
   constructor(actor) {
     super();
     this.actor = actor;
+    this.groupStates = new Map();
     this.draft = foundry.utils.deepClone(configFor(actor));
     this.draft.tokenPattern ||= actor.prototypeToken.texture.src;
     this.tokens = this.draft.tokens ?? [];
     this.rows = this.draft.pairs.map(pair => {
       const mapping = this.draft.mappings.find(row => row.token === pair.token);
-      return { id: pair.id, token: pair.token, name: pair.name ?? "", portrait: mapping?.portrait ?? "", mode: mapping ? mapping.portrait ? "explicit" : "default" : "auto" };
+      return { id: pair.id, token: pair.token, name: pair.name ?? "", scale: pair.scale ?? "", height: heightForInput(pair.height), scenescape: pair.scenescape, portrait: mapping?.portrait ?? "", mode: mapping ? mapping.portrait ? "explicit" : "default" : "auto" };
     });
   }
 
@@ -44,10 +46,13 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
 
   async _prepareContext() {
     return {
+      scenescapeIntegration: game.settings.get(ID, "scenescapeIntegration"),
       id: this.id, actorName: this.actor.name, config: this.draft,
       portraitChoices: this.draft.portraits,
       rows: this.rows.map((row, index) => ({
-        ...row, index, isSpecific: row.mode === "explicit",
+        ...row, index,
+        ...Object.fromEntries(["artwork", "overrides", "scenescape", "macro"].map(group => [group + "Open", this.groupStates.get(row.id + ":" + group) ?? group === "artwork"])),
+        isSpecific: row.mode === "explicit",
         displayName: row.token ? normalize(row.token).split("/").pop() : "New pairing",
         preview: resolvePortrait({ ...this.draft, enabled: true, mappings: row.mode === "auto" ? [] : [{ token: row.token, portrait: row.mode === "default" ? "" : row.portrait }] }, row.token, defaultPortraitForActor(this.actor)),
         modes: { auto: "Automatic index match", explicit: "Specific portrait", default: "Default actor portrait" }
@@ -57,6 +62,20 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
 
   _onRender(context, options) {
     super._onRender(context, options);
+    this.element.querySelectorAll("[data-pairing-group]").forEach(group => {
+      group.addEventListener("toggle", () => {
+        const card = group.closest("[data-pairing-row]");
+        if (group.open) {
+          card.querySelectorAll("[data-pairing-group]").forEach(sibling => {
+            if (sibling !== group) {
+              sibling.open = false;
+              this.groupStates.set(card.dataset.pairId + ":" + sibling.dataset.pairingGroup, false);
+            }
+          });
+        }
+        this.groupStates.set(card.dataset.pairId + ":" + group.dataset.pairingGroup, group.open);
+      });
+    });
     this.element.onchange = () => {
       this.capture();
       this.element.querySelectorAll("[data-pairing-row]").forEach((element, index) => {
@@ -78,6 +97,9 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
     for (const key of ["tokenPattern", "portraitPattern"]) this.draft[key] = form.elements[key].value.trim();
     this.rows = [...form.querySelectorAll("[data-pairing-row]")].map(row => ({
       id: row.dataset.pairId,
+      scale: row.querySelector('[data-field="scale"]')?.value.trim() ?? "",
+      scenescape: row.querySelector('[data-field="scenescape"]')?.checked ?? this.rows.find(pair => pair.id === row.dataset.pairId)?.scenescape ?? false,
+      height: row.querySelector('[data-field="height"]')?.value.trim() ?? this.rows.find(pair => pair.id === row.dataset.pairId)?.height ?? "",
       token: row.querySelector('[data-field="token"]').value.trim(),
       name: row.querySelector('[data-field="name"]').value.trim(),
       portrait: row.querySelector('[data-field="portrait"]').value.trim(),
@@ -154,6 +176,8 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
     const seen = new Set();
     for (const row of this.rows) {
       if (!row.token) continue;
+      if (row.scale !== "" && row.scale != null && (!Number.isFinite(Number(row.scale)) || Number(row.scale) <= 0)) return ui.notifications.warn("Token scale must be a positive multiplier.");
+      if (Number.isNaN(heightInFeet(row.height))) return ui.notifications.warn("Enter a positive Scenescape height in feet, m, or cm. Values without a unit are centimeters.");
       const key = row.token;
       if (seen.has(key)) return ui.notifications.warn("Each token image must appear only once.");
       seen.add(key);
@@ -161,7 +185,7 @@ export class ShiftingFacesConfig extends HandlebarsApplicationMixin(ApplicationV
       if (key.includes("*")) return ui.notifications.warn("Pairing rows need concrete token paths. Use Discover for wildcard patterns.");
       if (row.mode !== "auto") mappings.push({ token: key, portrait: row.mode === "default" ? "" : row.portrait });
     }
-    this.draft.pairs = this.rows.filter(row => row.token).map(row => ({ id: row.id ?? pairIdForPath(row.token), token: row.token, name: row.name ?? "" }));
+    this.draft.pairs = this.rows.filter(row => row.token).map(row => ({ id: row.id ?? pairIdForPath(row.token), token: row.token, name: row.name ?? "", scale: row.scale === "" || row.scale == null ? null : Number(row.scale), scenescape: !!row.scenescape, height: heightInFeet(row.height) }));
     this.draft.mappings = mappings;
     this.draft.tokens = this.rows.filter(row => row.token).map(row => row.token);
     try {

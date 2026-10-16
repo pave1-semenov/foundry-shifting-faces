@@ -25,7 +25,7 @@
 .shifting-faces-config .pairings-heading h3 { margin: 0; }
 .shifting-faces-config .pairing-count { font-size: 12px; opacity: .7; }
 .shifting-faces-config .pairings { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; }
-.shifting-faces-config .pairing-row { display: flex; flex-direction: column; gap: 10px; min-height: 510px; min-width: 0; margin: 0; padding: 14px; border: 1px solid var(--color-border-light-primary, #7775); border-radius: 8px; background: color-mix(in srgb, var(--color-bg-option, #222) 35%, transparent); }
+.shifting-faces-config .pairing-row { display: flex; flex-direction: column; gap: 10px; min-height: 0; min-width: 0; margin: 0; padding: 14px; border: 1px solid var(--color-border-light-primary, #7775); border-radius: 8px; background: color-mix(in srgb, var(--color-bg-option, #222) 35%, transparent); }
 .shifting-faces-config .pairing-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .shifting-faces-config .pairing-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; font-weight: 700; }
 .shifting-faces-config .remove-pairing { flex: 0 0 28px; width: 28px; height: 28px; padding: 0; margin: 0; }
@@ -37,7 +37,7 @@
 .shifting-faces-config .image-preview:focus-visible { border-color: var(--color-warm-2, #d8a85e); }
 .shifting-faces-config .pairing-art img { display: block; width: 100%; height: 100%; object-fit: contain; border: 0; }
 .shifting-faces-config figcaption { margin-top: 4px; font-size: 12px; text-align: center; opacity: .75; }
-.shifting-faces-config .pairing-fields { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.shifting-faces-config .pairing-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; min-width: 0; }
 .shifting-faces-config .specific-portrait[hidden] { display: none; }
 .shifting-faces-config .pairings-empty { grid-column: 1 / -1; padding: 32px 16px; border: 1px dashed var(--color-border-light-primary, #7775); border-radius: 8px; text-align: center; }
 .shifting-faces-config .pairings-empty > i { font-size: 28px; opacity: .5; }
@@ -69,3 +69,22 @@
 .shifting-faces-config .pairing-id { display: flex; gap: 6px; align-items: center; min-width: 0; }
 .shifting-faces-config .pairing-id input { flex: 1 1 0; min-width: 0; height: 28px; font-family: monospace; font-size: 11px; }
 .shifting-faces-config .pairing-id button { flex: 0 0 28px; width: 28px; height: 28px; padding: 0; margin: 0; }
+
+.shifting-faces-gallery .tokens-only { grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 10px; }
+.shifting-faces-gallery .tokens-only .token-image-choice { padding: 10px; gap: 8px; }
+.shifting-faces-gallery .tokens-only .gallery-token-name { display: none; }
+.shifting-faces-gallery .tokens-only .image-preview { height: 120px; }
+.shifting-faces-gallery .gallery-tools { flex-wrap: wrap; }
+
+.shifting-faces-config .scenescape-pair, .shifting-faces-gallery .gallery-scenescape-label { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.shifting-faces-config .scenescape-pair input, .shifting-faces-gallery .gallery-scenescape-label input { flex: 0 0 auto; width: auto; }
+
+.shifting-faces-config .pairings { align-items: start; }
+.shifting-faces-config .pairing-group { min-width: 0; border: 1px solid var(--color-border-light-primary, #7775); border-radius: 6px; overflow: hidden; }
+.shifting-faces-config .pairing-group > summary { padding: 9px 10px; cursor: pointer; font-size: 12px; font-weight: 600; }
+.shifting-faces-config .pairing-group > summary:hover, .shifting-faces-config .pairing-group > summary:focus-visible { background: color-mix(in srgb, var(--color-warm-2, #d8a85e) 12%, transparent); }
+.shifting-faces-config .pairing-group > .pairing-fields { padding: 10px; border-top: 1px solid var(--color-border-light-primary, #7775); }
+.shifting-faces-config .pairing-group .pairing-id { grid-column: 1 / -1; }
+.shifting-faces-config .pairing-group .scenescape-pair { align-self: center; }
+
+.shifting-faces-config .height-conversion-info { margin-left: 4px; opacity: .75; cursor: help; }

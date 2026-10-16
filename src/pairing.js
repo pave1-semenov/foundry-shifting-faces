@@ -19,7 +19,7 @@ export async function migrateFlags(document) {
   if (Object.keys(update).length) await document.update(update, { [ID]: true });
 }
 export const DEFAULTS = Object.freeze({
-  enabled: false, tokenPattern: "", portraitPattern: "",
+  enabled: true, tokenPattern: "", portraitPattern: "",
   mappings: [], portraits: [], tokens: [], pairs: []
 });
 
@@ -40,6 +40,10 @@ export function configFor(actor) {
   config.pairs = paths.map(token => ({
     id: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.id ?? pairIdForPath(token),
     token,
+    scenescape: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.scenescape
+      ?? (Number(config.pairs.find(pair => normalize(pair.token) === normalize(token))?.height) > 0),
+    scale: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.scale ?? null,
+    height: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.height ?? null,
     name: config.pairs.find(pair => normalize(pair.token) === normalize(token))?.name ?? ""
   }));
   return config;
