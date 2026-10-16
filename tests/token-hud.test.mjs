@@ -96,3 +96,66 @@ test("Use this image and Random image both close after successful selection", as
   assert.equal(closed, 2);
   assert.equal(rendered, 0);
 });
+
+test("wildcard tokens remain browsable and selectable with pairings disabled", async () => {
+  const actor = { prototypeToken: { randomImg: true }, getFlag: () => ({ enabled: false }), getTokenImages: async () => ["a.webp", "b.webp"] };
+  globalThis.game = { actors: new Map([["actor", actor]]) };
+  globalThis.Hooks = { on: () => {} };
+  registerTokenHUD(async () => {});
+  let written;
+  const token = { actorId: "actor", actor, isOwner: true, texture: { src: "a.webp" }, update: async data => { written = data; } };
+  const { canBrowse, TokenImageGallery } = await import("../src/token-hud.js");
+  assert.equal(canBrowse(token), true);
+  const context = await new TokenImageGallery(token)._prepareContext();
+  assert.equal(context.displayPairings, false);
+  assert.equal(context.choices.length, 2);
+  await selectImage(token, "b.webp", ["a.webp", "b.webp"]);
+  assert.deepEqual(written, { "texture.src": "b.webp" });
+});
+
+
+test("Scenescape gallery defaults follow active scene markers and filtering combines with search and random", async () => {
+  const actor = { getFlag: () => ({ tokens: ["full.webp", "round.webp"], pairs: [{ token: "full.webp", scenescape: true }, { token: "round.webp", scenescape: false }] }) };
+  globalThis.game = { actors: new Map([["actor", actor]]), settings: { get: () => true }, modules: new Map([["multi-token-edit", { active: true }]]) };
+  globalThis.canvas = { scene: { getFlag: () => ({ markers: [{}] }) } };
+  const { TokenImageGallery } = await import("../src/token-hud.js");
+  const gallery = new TokenImageGallery({ actorId: "actor", name: "Wolf", texture: { src: "round.webp" } });
+  assert.equal(gallery.scenescapeFilter, "scenescape");
+  const context = await gallery._prepareContext();
+  assert.equal(context.choices.find(choice => choice.src === "full.webp").scenescape, true);
+  const cards = context.choices.map(choice => ({ dataset: { index: String(choice.index), name: choice.name, tokenName: choice.tokenName, scenescape: String(choice.scenescape) } }));
+  const empty = {};
+  gallery.element = { querySelectorAll: () => cards, querySelector: () => empty };
+  gallery.filter();
+  assert.deepEqual(cards.map(card => card.hidden), [false, true]);
+  let chosen;
+  gallery.choose = async image => { chosen = image; };
+  await TokenImageGallery.random.call(gallery);
+  assert.equal(chosen, "full.webp");
+  gallery.query = "missing";
+  gallery.filter();
+  assert.equal(empty.hidden, false);
+  await TokenImageGallery.random.call(gallery);
+  assert.equal(chosen, null);
+  gallery.scenescapeFilter = "all";
+  gallery.query = "";
+  gallery.filter();
+  assert.equal(cards.every(card => !card.hidden), true);
+  canvas.scene.getFlag = () => ({ markers: [] });
+  const regularGallery = new TokenImageGallery(gallery.token);
+  assert.equal(regularGallery.scenescapeFilter, "regular");
+  regularGallery.element = gallery.element;
+  regularGallery.filter();
+  assert.deepEqual(cards.map(card => card.hidden), [true, false]);
+  let regularChoice;
+  regularGallery.choose = async image => { regularChoice = image; };
+  regularGallery.images = gallery.images;
+  regularGallery.token.texture.src = "full.webp";
+  await TokenImageGallery.random.call(regularGallery);
+  assert.equal(regularChoice, "round.webp");
+  game.settings.get = () => false;
+  assert.equal(new TokenImageGallery(gallery.token).scenescapeFilter, "all");
+  regularGallery.filter();
+  assert.equal(cards.every(card => !card.hidden), true);
+  delete globalThis.canvas;
+});

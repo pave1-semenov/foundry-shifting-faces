@@ -39,10 +39,6 @@
             <span class="pairing-title" title="{{token}}">{{displayName}}</span>
             <button class="remove-pairing" type="button" data-action="remove" title="Remove pairing" aria-label="Remove pairing"><i class="fas fa-trash"></i></button>
           </header>
-          <div class="pairing-id">
-            <input type="text" value="{{id}}" readonly aria-label="Pair ID" title="Pair ID for macros — save this pairing before use">
-            <button type="button" data-action="copyPairId" title="Copy Pair ID" aria-label="Copy Pair ID"><i class="fas fa-copy"></i></button>
-          </div>
           <div class="pairing-art">
             <figure>
               <button class="image-preview" type="button" data-action="preview" data-kind="Token" title="Preview token image"><img class="token-preview" src="{{#if token}}{{token}}{{else}}icons/svg/mystery-man.svg{{/if}}" alt="Token preview" loading="lazy"></button>
@@ -54,11 +50,9 @@
               <figcaption>Portrait</figcaption>
             </figure>
           </div>
-          <div class="pairing-fields">
-            <div class="field-group">
-              <label for="{{../id}}-mode-{{index}}">Portrait selection</label>
-              <select id="{{../id}}-mode-{{index}}" data-field="mode">{{selectOptions modes selected=mode}}</select>
-            </div>
+          <details name="{{../id}}-pair-{{id}}" class="pairing-group" data-pairing-group="artwork" {{#if artworkOpen}}open{{/if}}>
+            <summary>Artwork</summary>
+            <div class="pairing-fields">
             <div class="field-group">
               <label for="{{../id}}-token-{{index}}">Token image</label>
               <div class="path-field">
@@ -66,9 +60,10 @@
                 <button type="button" data-action="pick" title="Browse token image" aria-label="Browse token image"><i class="fas fa-folder-open"></i></button>
               </div>
             </div>
+
             <div class="field-group">
-              <label for="{{../id}}-name-{{index}}">Token name (unlinked only)</label>
-              <input type="text" id="{{../id}}-name-{{index}}" data-field="name" value="{{name}}" placeholder="Use original token name">
+              <label for="{{../id}}-mode-{{index}}">Portrait selection</label>
+              <select id="{{../id}}-mode-{{index}}" data-field="mode">{{selectOptions modes selected=mode}}</select>
             </div>
             <div class="field-group specific-portrait" {{#unless isSpecific}}hidden{{/unless}}>
               <label for="{{../id}}-portrait-{{index}}">Specific portrait</label>
@@ -77,7 +72,39 @@
                 <button type="button" data-action="pick" title="Browse portrait image" aria-label="Browse portrait image"><i class="fas fa-folder-open"></i></button>
               </div>
             </div>
+            </div>
+          </details>
+          <details name="{{../id}}-pair-{{id}}" class="pairing-group" data-pairing-group="overrides" {{#if overridesOpen}}open{{/if}}>
+            <summary>Token overrides</summary>
+            <div class="pairing-fields">
+            <div class="field-group">
+              <label for="{{../id}}-name-{{index}}">Token name (unlinked only)</label>
+              <input type="text" id="{{../id}}-name-{{index}}" data-field="name" value="{{name}}" placeholder="Use original token name">
+            </div>
+              <div class="field-group">
+                <label for="{{../id}}-scale-{{index}}">Token scale multiplier</label>
+                <input id="{{../id}}-scale-{{index}}" type="number" min="0.01" step="any" data-field="scale" value="{{scale}}" placeholder="Use original scale">
+              </div>
+            </div>
+          </details>
+          {{#if ../scenescapeIntegration}}
+          <details name="{{../id}}-pair-{{id}}" class="pairing-group" data-pairing-group="scenescape" {{#if scenescapeOpen}}open{{/if}}>
+            <summary>Scenescape</summary>
+            <div class="pairing-fields">
+            <label class="scenescape-pair"><input type="checkbox" data-field="scenescape" {{checked scenescape}}> Scenescape token (full-height)</label>
+            <div class="field-group"><label for="{{../id}}-height-{{index}}">Height <i class="fas fa-circle-info height-conversion-info" tabindex="0" role="img" aria-label="Height conversion: use feet, m, or cm. Without a unit, values are centimeters. Saved as feet for Scenescape. Leave blank to keep the existing height." data-tooltip="Use feet, m, or cm (e.g. 6 feet, 1.8 m, 180 cm). Without a unit, values are centimeters. Saved as feet for Scenescape. Leave blank to keep the existing height." title="Use feet, m, or cm (e.g. 6 feet, 1.8 m, 180 cm). Without a unit, values are centimeters. Saved as feet for Scenescape. Leave blank to keep the existing height."></i></label><input id="{{../id}}-height-{{index}}" type="text" data-field="height" value="{{height}}" placeholder="e.g. 180 cm, 1.8 m, 6 feet"></div>
+            </div>
+          </details>
+          {{/if}}
+          <details name="{{../id}}-pair-{{id}}" class="pairing-group" data-pairing-group="macro" {{#if macroOpen}}open{{/if}}>
+            <summary>Macro / Pair ID</summary>
+            <div class="pairing-fields">
+          <div class="pairing-id">
+            <input type="text" value="{{id}}" readonly aria-label="Pair ID" title="Pair ID for macros — save this pairing before use">
+            <button type="button" data-action="copyPairId" title="Copy Pair ID" aria-label="Copy Pair ID"><i class="fas fa-copy"></i></button>
           </div>
+            </div>
+          </details>
         </article>
         {{else}}
         <div class="pairings-empty"><i class="fas fa-images"></i><p>No pairings yet</p><span>Discover images or add a specific pairing.</span></div>

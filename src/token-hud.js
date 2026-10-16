@@ -4,6 +4,8 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const galleries = new Map();
 let synchronize = async () => {};
 const concrete = path => typeof path === "string" && path.length > 0 && !path.includes("*");
+export const hasWildcard = token => !!(token.randomImg || sourceActor(token)?.prototypeToken?.randomImg || sourceActor(token)?.prototypeToken?.texture?.src?.includes("*"));
+export const canBrowse = token => hasWildcard(token) || configFor(sourceActor(token)).enabled;
 export const isVideo = path => /\.(?:webm|mp4|ogg|m4v)(?:[?#].*)?$/i.test(path);
 
 /** Combine Foundry's token wildcard list with the actor's configured pairing paths. */
@@ -12,7 +14,7 @@ export async function tokenImages(token) {
   if (!actor) return [];
   const config = configFor(actor);
   let wildcard = [];
-  if (actor.prototypeToken?.randomImg) {
+  if (hasWildcard(token)) {
     try { wildcard = await actor.getTokenImages(); }
     catch (error) { console.warn(ID, "Unable to list Foundry wildcard images", error); }
   }
@@ -30,7 +32,7 @@ export function randomAlternative(images, current, random = Math.random) {
 
 export async function selectImage(token, image, images) {
   if (!token.isOwner) throw new Error("You do not have permission to change this token.");
-  if (!configFor(sourceActor(token)).enabled) throw new Error("Portrait pairings are disabled for this actor.");
+  if (!canBrowse(token)) throw new Error("Portrait pairings are disabled for this actor.");
   if (!concrete(image) || !images.includes(image)) throw new Error("Choose an available token image.");
   // Use a standard document update so other modules and Foundry receive the change.
   await token.update({ "texture.src": image });
@@ -42,7 +44,7 @@ export class TokenImageGallery extends HandlebarsApplicationMixin(ApplicationV2)
     classes: ["shifting-faces-config", "shifting-faces-gallery"],
     position: { width: 820, height: 700 },
     window: { title: "Choose token image", icon: "fas fa-images", resizable: true },
-    actions: { select: TokenImageGallery.select, random: TokenImageGallery.random, preview: TokenImageGallery.preview, configure: TokenImageGallery.configure }
+    actions: { select: TokenImageGallery.select, random: TokenImageGallery.random, preview: TokenImageGallery.preview, configure: TokenImageGallery.configure, mode: TokenImageGallery.mode }
   };
   static PARTS = { main: { template: "modules/shifting-faces/templates/gallery.hbs", scrollable: [".config-scroll"] } };
 
@@ -52,25 +54,31 @@ export class TokenImageGallery extends HandlebarsApplicationMixin(ApplicationV2)
     this.images = [];
     this.query = "";
     this.busy = false;
+    this.displayPairings = false;
+    const integration = !!game.settings?.get(ID, "scenescapeIntegration");
+    const scenescapeScene = !!game.modules?.get("multi-token-edit")?.active &&
+      !!globalThis.canvas?.scene?.getFlag?.("multi-token-edit", "scenescape")?.markers?.length;
+    this.scenescapeFilter = integration ? (scenescapeScene ? "scenescape" : "regular") : "all";
   }
 
   async _prepareContext() {
     const actor = sourceActor(this.token);
     const config = configFor(actor);
-    this.images = config.enabled ? await tokenImages(this.token) : [];
+    this.images = canBrowse(this.token) ? await tokenImages(this.token) : [];
     const current = this.token._source?.texture?.src ?? this.token.texture?.src;
     const previousName = this.token.getFlag?.(ID, "tokenName");
     const originalName = previousName && this.token.name === previousName.applied ? previousName.original
       : config.pairs.some(pair => pair.name?.trim() && pair.name.trim() === this.token.name)
         ? actor.prototypeToken?.name || actor.name || this.token.name : this.token.name;
     return {
-      canConfigure: canConfigureActor(actor),
+      scenescapeIntegration: !!game.settings?.get(ID, "scenescapeIntegration"), scenescapeFilters: { all: "All tokens", regular: "Regular tokens", scenescape: "Only Scenescape" }, scenescapeFilter: this.scenescapeFilter,
+      canConfigure: canConfigureActor(actor), displayPairings: this.displayPairings,
       tokenName: this.token.name, query: this.query,
       choices: this.images.map((src, index) => {
         const portrait = resolvePortrait(config, src, defaultPortraitForActor(actor));
-        const tokenName = this.token.actorLink ? this.token.name
+        const tokenName = this.token.actorLink || !config.enabled ? this.token.name
           : config.pairs.find(pair => normalize(pair.token) === normalize(src))?.name?.trim() || originalName;
-        return { index, src, name: normalize(src).split("/").pop(), tokenName, portrait,
+        return { scenescape: config.pairs.find(pair => normalize(pair.token) === normalize(src))?.scenescape ?? false, index, src, name: normalize(src).split("/").pop(), tokenName, portrait,
           video: isVideo(src), portraitVideo: isVideo(portrait),
           selected: normalize(src) === normalize(current) };
       })
@@ -83,6 +91,10 @@ export class TokenImageGallery extends HandlebarsApplicationMixin(ApplicationV2)
       this.query = event.target.value;
       this.filter();
     });
+    this.element.querySelector(".gallery-scenescape-filter")?.addEventListener("change", event => {
+      this.scenescapeFilter = event.target.value;
+      this.filter();
+    });
     this.filter();
   }
 
@@ -90,7 +102,7 @@ export class TokenImageGallery extends HandlebarsApplicationMixin(ApplicationV2)
     const query = this.query.trim().toLocaleLowerCase();
     let visible = 0;
     this.element.querySelectorAll("[data-image-choice]").forEach(card => {
-      card.hidden = !`${card.dataset.name} ${card.dataset.tokenName ?? ""}`.toLocaleLowerCase().includes(query);
+      card.hidden = (!!game.settings?.get(ID, "scenescapeIntegration") && this.scenescapeFilter !== "all" && (card.dataset.scenescape === "true") !== (this.scenescapeFilter === "scenescape")) || !`${card.dataset.name} ${card.dataset.tokenName ?? ""}`.toLocaleLowerCase().includes(query);
       if (!card.hidden) visible++;
     });
     const empty = this.element.querySelector(".gallery-no-results");
@@ -122,18 +134,21 @@ export class TokenImageGallery extends HandlebarsApplicationMixin(ApplicationV2)
   static select(event, button) { return this.choose(this.images[Number(button.dataset.index)], { close: true }); }
   static random() {
     const current = this.token._source?.texture?.src ?? this.token.texture?.src;
-    return this.choose(randomAlternative(this.images, current), { close: true });
+    const visible = this.element?.querySelectorAll?.("[data-image-choice]");
+    const images = visible?.length ? [...visible].filter(card => !card.hidden).map(card => this.images[Number(card.dataset.index)]) : this.images;
+    return this.choose(randomAlternative(images, current), { close: true });
   }
   static preview(event, button) {
     const src = button.dataset.src;
     if (!src) return;
     new foundry.applications.apps.ImagePopout({ src, window: { title: this.token.name } }).render(true);
   }
+  static mode() { this.displayPairings = !this.displayPairings; return this.render(true); }
   static configure() { game.modules.get(ID).api.open(sourceActor(this.token)); }
 }
 
 export function openGallery(token) {
-  if (!token?.isOwner || !token.actor || !configFor(sourceActor(token)).enabled) return;
+  if (!token?.isOwner || !token.actor || !canBrowse(token)) return;
   let gallery = galleries.get(token.uuid);
   if (!gallery) {
     gallery = new TokenImageGallery(token);
@@ -149,13 +164,13 @@ export function registerTokenHUD(sync) {
     if (!token?.isOwner || !token.actor) return;
     const root = html?.querySelector ? html : html?.[0];
     const column = root?.querySelector(".col.right, .right");
-    if (!configFor(sourceActor(token)).enabled) {
+    if (!canBrowse(token)) {
       column?.querySelector("[data-shifting-faces-switch]")?.remove();
       return;
     }
     if (!column || column.querySelector('[data-shifting-faces-switch]')) return;
     const images = await tokenImages(token);
-    if (hud.object?.document !== token || !root.isConnected || !token.isOwner || !configFor(sourceActor(token)).enabled || images.length < 2) return;
+    if (hud.object?.document !== token || !root.isConnected || !token.isOwner || !canBrowse(token) || (!hasWildcard(token) && images.length < 2)) return;
     const button = document.createElement("button");
     button.type = "button";
     button.className = "control-icon shifting-faces-switch";
@@ -188,7 +203,7 @@ export function registerTokenHUD(sync) {
   });
   Hooks.on("updateActor", (actor, changes) => {
     if (actor.isToken || !foundry.utils.hasProperty(changes, "flags." + ID)) return;
-    if (!configFor(actor).enabled) {
+    if (!configFor(actor).enabled && !actor.prototypeToken?.randomImg && !actor.prototypeToken?.texture?.src?.includes("*")) {
       for (const gallery of galleries.values()) if (gallery.token.actorId === actor.id) void gallery.close();
     }
     const hud = globalThis.canvas?.hud?.token;

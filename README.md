@@ -24,7 +24,7 @@ The token HUD and switching macros are available to token owners regardless of t
 
 1. Enable **Shifting Faces** and reload Foundry.
 2. Open an actor sheet and choose **Shifting Faces** from the header menu.
-3. Check **Enable pairings**.
+3. **Enable pairings** is checked by default; previously saved choices are preserved.
 4. Enter the **Token images** and **Portrait images** wildcard paths.
 5. Click **Discover images**.
 6. Choose a portrait selection mode for each token image.
@@ -84,7 +84,7 @@ Saving applies pairings to existing tokens. For linked tokens, a controlled toke
 
 ## Disable pairings
 
-Uncheck **Enable pairings** and click **Save and apply**. This removes the HUD button, closes the gallery, and stops automatic portrait changes.
+Uncheck **Enable pairings** and click **Save and apply**. This stops automatic portrait changes. Wildcard tokens retain their HUD image selector even with pairings disabled.
 
 Portraits and token names previously applied by the module are restored to their originals. Later manual edits are preserved. Disable pairings and save before uninstalling if you want those original portraits and names restored.
 
@@ -125,3 +125,11 @@ console.table(await api.getPairs("Actor.ACTOR_ID"));
 `getPairs(target)` returns each pairing's `id`, `token` image path, optional `name`, resolved `portrait`, and `mode`. Both methods accept Actor/Token UUIDs, Actor documents, TokenDocuments, or canvas Tokens.
 
 `switchPair(target, pairId)` updates the token image and synchronizes its portrait and, for unlinked tokens, its name. It requires enabled pairings and token ownership, and rejects unknown IDs or ambiguous actor targets. Linked tokens retain the shared-portrait behavior described above.
+
+The token HUD gallery opens in compact **Just tokens** mode. Use **Portrait** on a card to preview its portrait, or **Display pairings** to show token and portrait side by side.
+
+Enable **Scenescape integration** in the global Shifting Faces settings to enter a height on each pairing. Use feet (or ft), m, or cm; unitless input is centimeters. Heights are saved as feet and reopen with an explicit ft suffix. With Multi Token Edit active, selecting that pairing writes Scenescape’s physical size flag and resizes existing Scenescape tokens around their feet. Blank heights keep the existing size.
+
+Mark full-height artwork with **Scenescape token** in each pairing. Existing pairings with a positive Scenescape height start marked; you can uncheck them. The gallery defaults to **Only Scenescape** when the active scene has Scenescape markers and Multi Token Edit is active, and **Regular tokens** on other scenes. Choose **All tokens** to show all artwork. Search and Random image respect the filtered gallery.
+
+Per-pairing **Artwork** groups the token image and portrait selection. **Token overrides** contains the unlinked token name and a scale multiplier (1 = original scale, 2 = twice as large). Scale applies to linked and unlinked token artwork, preserves mirroring, and restores the original scale when selecting a pairing without an override or disabling pairings.
